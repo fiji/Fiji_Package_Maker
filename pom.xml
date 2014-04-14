@@ -49,6 +49,11 @@
 		</plugins>
 	</build>
 
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>http://jenkins.imagej.net/job/Fiji_Package_Maker/</url>
+	</ciManagement>
+
 	<scm>
 		<connection>scm:git:git://github.com/fiji/Fiji_Package_Maker</connection>
 		<developerConnection>scm:git:git@github.com:fiji/Fiji_Package_Maker</developerConnection>
