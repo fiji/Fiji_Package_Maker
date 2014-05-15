@@ -4,7 +4,6 @@ import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.io.SaveDialog;
 import ij.plugin.PlugIn;
-import imagej.updater.util.Progress;
 
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -41,39 +40,9 @@ public class Package_Maker implements PlugIn {
 		if (save.getFileName() == null)
 			return;
 
-		final Progress progress = IJ.getInstance() == null ? null : new Progress() {
-			@Override
-			public void setTitle(String title) {
-				IJ.showStatus(title);
-			}
-
-			@Override
-			public void setCount(int count, int total) {
-				IJ.showProgress(count, total);
-			}
-
-			@Override
-			public void addItem(Object item) {
-				IJ.showStatus("" + item);
-			}
-
-			@Override
-			public void setItemCount(int count, int total) {
-			}
-
-			@Override
-			public void itemDone(Object item) {
-			}
-
-			@Override
-			public void done() {
-				IJ.showStatus("Finished checksumming");
-			}
-
-		};
 		String path = save.getDirectory() + save.getFileName();
 		try {
-			packager.initialize(progress, false);
+			packager.initialize(null, false);
 			packager.open(new FileOutputStream(path));
 			packager.addDefaultFiles();
 			packager.close();
