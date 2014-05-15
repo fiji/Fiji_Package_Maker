@@ -2,13 +2,13 @@ package fiji.packaging;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.lang.reflect.Constructor;
 
 public class TarBz2Packager extends TarPackager {
 	protected Constructor<OutputStream> ctor;
 
 	public TarBz2Packager() throws ClassNotFoundException {
+		@SuppressWarnings("unchecked")
 		Class<OutputStream> clazz = (Class<OutputStream>)getClass().getClassLoader().loadClass("org.apache.tools.bzip2.CBZip2OutputStream");
 		try {
 			ctor = clazz.getConstructor(OutputStream.class);
