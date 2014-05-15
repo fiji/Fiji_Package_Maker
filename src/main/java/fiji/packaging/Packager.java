@@ -57,7 +57,11 @@ public abstract class Packager {
 	public void initialize(boolean includeJRE, String... platforms) throws Exception {
 		if (System.getProperty("ij.dir") == null)
 			throw new UnsupportedOperationException("Need an ij.dir property pointing to the ImageJ root!");
-		ijDir = new File(System.getProperty("ij.dir"));
+		String ijDirProperty = System.getProperty("imagej.dir");
+		if (ijDirProperty == null) {
+			ijDirProperty = System.getProperty("ij.dir");
+		}
+		ijDir = new File(ijDirProperty);
 		files = new LinkedHashSet<String>();
 		files.add("db.xml.gz");
 		// Maybe ImageJ or ImageJ.exe exist?
