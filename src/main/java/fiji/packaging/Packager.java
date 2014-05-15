@@ -64,8 +64,8 @@ public abstract class Packager {
 		ijDir = new File(ijDirProperty);
 		files = new LinkedHashSet<String>();
 		files.add("db.xml.gz");
-		// Maybe ImageJ or ImageJ.exe exist?
-		for (final String fileName : new String[] { "ImageJ", "ImageJ.exe" })
+		// Maybe ImageJ.sh, ImageJ or ImageJ.exe exist?
+		for (final String fileName : new String[] { "ImageJ", "ImageJ.exe", "ImageJ.sh" })
 			if (new File(ijDir, fileName).exists())
 				files.add("ImageJ");
 		files.add("Contents/Info.plist");
