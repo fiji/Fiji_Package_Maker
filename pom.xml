@@ -30,8 +30,9 @@
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
-			<artifactId>ij-updater-core</artifactId>
-			<version>${imagej.version}</version>
+			<artifactId>imagej-updater</artifactId>
+			<!-- TODO: remove once pom-fiji is based on pom-imagej -->
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 

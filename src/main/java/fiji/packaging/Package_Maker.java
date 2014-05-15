@@ -42,7 +42,7 @@ public class Package_Maker implements PlugIn {
 
 		String path = save.getDirectory() + save.getFileName();
 		try {
-			packager.initialize(null, false);
+			packager.initialize(false);
 			packager.open(new FileOutputStream(path));
 			packager.addDefaultFiles();
 			packager.close();

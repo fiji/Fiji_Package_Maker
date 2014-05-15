@@ -1,10 +1,6 @@
 package fiji.packaging;
 
-import imagej.updater.core.Checksummer;
-import imagej.updater.core.FileObject;
-import imagej.updater.core.FilesCollection;
-import imagej.updater.util.Progress;
-import imagej.updater.util.StderrProgress;
+import ij.IJ;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,10 +9,17 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import net.imagej.updater.Checksummer;
+import net.imagej.updater.FileObject;
+import net.imagej.updater.FilesCollection;
+import net.imagej.updater.util.Progress;
 
 public abstract class Packager {
 	protected File ijDir;
@@ -24,7 +27,6 @@ public abstract class Packager {
 	protected String prefix = "Fiji.app/";
 
 	protected byte[] buffer = new byte[16384];
-	private Progress progress;
 
 	public abstract String getExtension();
 
@@ -52,8 +54,7 @@ public abstract class Packager {
 		this.prefix = prefix;
 	}
 
-	public void initialize(final Progress progress, boolean includeJRE, String... platforms) throws Exception {
-		this.progress = progress != null ? progress : new StderrProgress();
+	public void initialize(boolean includeJRE, String... platforms) throws Exception {
 		if (System.getProperty("ij.dir") == null)
 			throw new UnsupportedOperationException("Need an ij.dir property pointing to the ImageJ root!");
 		ijDir = new File(System.getProperty("ij.dir"));
@@ -64,31 +65,172 @@ public abstract class Packager {
 			if (new File(ijDir, fileName).exists())
 				files.add("ImageJ");
 		files.add("Contents/Info.plist");
-		getFileList(platforms);
+		adapter.getFileList(files, ijDir, platforms);
 		if (includeJRE)
 			getJREFiles(platforms);
 	}
 
-	private void getFileList(String... platforms) {
-		final FilesCollection files = new FilesCollection(ijDir);
-		final Checksummer checksummer = new Checksummer(files, progress);
+	/**
+	 * An interface to hide the implementation details of the updater.
+	 */
+	private interface Adapter {
+		void getFileList(Collection<String> list, File ijDir, String... platforms);
+	}
 
-		checksummer.updateFromLocal();
-		files.sort();
-		for (final FileObject file : files) {
-			if (isForPlatforms(file, platforms))
-				this.files.add(file.getLocalFilename(false));
+	private static Adapter adapter;
+	static {
+		try {
+			adapter = new ModernUpdater();
+		} catch (Throwable t) {
+			t.printStackTrace();
+			adapter = new LegacyUpdater();
 		}
 	}
 
-	private static boolean isForPlatforms(final FileObject file, String... platforms) {
-		if (platforms.length == 0 || !file.getPlatforms().iterator().hasNext())
-			return true;
-		for (final String platform : platforms) {
-			if (file.isForPlatform(platform))
-				return true;
+	/**
+	 * An adapter for the current updater (encapsulated to handle version skew by falling back to {@link LegacyUpdater}).
+	 */
+	private static class ModernUpdater implements Adapter {
+		private final Progress progress = IJ.getInstance() == null ? null : new ProgressAdapter();
+
+		@Override
+		public void getFileList(Collection<String> list, File ijDir, String... platforms) {
+			final FilesCollection files = new FilesCollection(ijDir);
+			final Checksummer checksummer = new Checksummer(files, progress);
+
+			checksummer.updateFromLocal();
+			files.sort();
+			for (final FileObject file : files) {
+				if (isForPlatforms(file, platforms))
+					list.add(file.getLocalFilename(false));
+			}
 		}
-		return false;
+
+		private boolean isForPlatforms(final FileObject file, String... platforms) {
+			if (platforms.length == 0 || !file.getPlatforms().iterator().hasNext())
+				return true;
+			for (final String platform : platforms) {
+				if (file.isForPlatform(platform))
+					return true;
+			}
+			return false;
+		}
+
+	}
+
+	/**
+	 * An ImageJ 1.x compatible {@link Progress}.
+	 */
+	private static class ProgressAdapter implements Progress {
+		@Override
+		public void setTitle(String title) {
+			IJ.showStatus(title);
+		}
+
+		@Override
+		public void setCount(int count, int total) {
+			IJ.showProgress(count, total);
+		}
+
+		@Override
+		public void addItem(Object item) {
+			IJ.showStatus("" + item);
+		}
+
+		@Override
+		public void setItemCount(int count, int total) {
+		}
+
+		@Override
+		public void itemDone(Object item) {
+		}
+
+		@Override
+		public void done() {
+			IJ.showStatus("Finished checksumming");
+		}
+	}
+
+	/**
+	 * A fall-back adapter to the previous updater version (in case of version skew).
+	 */
+	private static class LegacyUpdater implements Adapter {
+		final Class<?> filesCollectionClass, fileObjectClass, checksummerClass, progressClass, stderrProgressClass;
+		final Constructor<?> filesCollectionConstructor, stderrProgressConstructor, checksummerConstructor;
+		final Method updateFromLocal, sort, getLocalFilename, getPlatforms, isForPlatform;
+
+		{
+			final ClassLoader loader = getClass().getClassLoader();
+			try {
+				filesCollectionClass = loader.loadClass("imagej.updater.core.FilesCollection");
+				filesCollectionConstructor = filesCollectionClass.getConstructor(File.class);
+				sort = filesCollectionClass.getMethod("sort");
+
+				fileObjectClass = loader.loadClass("imagej.updater.core.FileObject");
+				getLocalFilename = fileObjectClass.getMethod("getLocalFilename", Boolean.TYPE);
+				getPlatforms = fileObjectClass.getMethod("getPlatforms");
+				isForPlatform = fileObjectClass.getMethod("isForPlatform", String.class);
+
+				progressClass = loader.loadClass("imagej.updater.util.Progress");
+				stderrProgressClass = loader.loadClass("imagej.updater.util.StderrProgress");
+				stderrProgressConstructor = stderrProgressClass.getConstructor();
+
+				checksummerClass = loader.loadClass("imagej.updater.core.Checksummer");
+				checksummerConstructor = checksummerClass.getConstructor(filesCollectionClass, progressClass);
+				updateFromLocal = checksummerClass.getMethod("updateFromLocal");
+			} catch (Throwable t) {
+				if (t instanceof RuntimeException) {
+					throw (RuntimeException) t;
+				}
+				throw new RuntimeException(t);
+			}
+		}
+
+		@Override
+		public void getFileList(Collection<String> list, File ijDir, String... platforms) {
+			try {
+				final Object files = filesCollectionConstructor.newInstance(ijDir);
+				final Object progress = stderrProgressConstructor.newInstance();
+				final Object checksummer = checksummerConstructor.newInstance(files, progress);
+
+				updateFromLocal.invoke(checksummer);
+				sort.invoke(files);
+				@SuppressWarnings("unchecked")
+				final Iterable<Object> iterable = (Iterable<Object>) files;
+				for (final Object file : iterable) {
+					if (isForPlatforms(file, platforms)) {
+						final String path = (String) getLocalFilename.invoke(file, false);
+						list.add(path);
+					}
+				}
+			} catch (Throwable t) {
+				if (t instanceof RuntimeException) {
+					throw (RuntimeException) t;
+				}
+				throw new RuntimeException(t);
+			}
+		}
+
+		private boolean isForPlatforms(final Object file, String... platforms) {
+			try {
+				@SuppressWarnings("unchecked")
+				final Iterable<String> filePlatforms = (Iterable<String>) getPlatforms.invoke(file);
+				if (platforms.length == 0 || !filePlatforms.iterator().hasNext())
+					return true;
+				for (final String platform : platforms) {
+					final Boolean matches = (Boolean) isForPlatform.invoke(file, platform);
+					if (matches) {
+						return true;
+					}
+				}
+				return false;
+			} catch (Throwable t) {
+				if (t instanceof RuntimeException) {
+					throw (RuntimeException) t;
+				}
+				throw new RuntimeException(t);
+			}
+		}
 	}
 
 	public void addDefaultFiles() throws IOException {
@@ -275,7 +417,7 @@ public abstract class Packager {
 			packager.setPrefix(prefix);
 
 		try {
-			packager.initialize(null, includeJRE, platforms);
+			packager.initialize(includeJRE, platforms);
 			packager.open(new FileOutputStream(path));
 			packager.addDefaultFiles();
 			packager.close();
