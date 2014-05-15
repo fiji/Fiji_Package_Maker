@@ -92,12 +92,16 @@ public abstract class Packager {
 	}
 
 	public void addDefaultFiles() throws IOException {
-		progress.setTitle("Writing files");
+		boolean logToStdout = IJ.getInstance() == null;
+		if (logToStdout) System.out.println("Writing files");
+		else IJ.showStatus("Writing files");
 		int count = 0;
 		for (String fileName : files) {
 			addFile(fileName, false);
-			progress.setCount(count++, files.size());
+			if (logToStdout) System.out.print(".");
+			else IJ.showProgress(count++, files.size());
 		}
+		if (logToStdout) System.out.println();
 	}
 
 	private void getJREFiles(String... platforms) throws IOException {
