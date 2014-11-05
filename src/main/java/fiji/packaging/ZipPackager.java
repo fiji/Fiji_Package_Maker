@@ -2,10 +2,8 @@ package fiji.packaging;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.util.HashSet;
 import java.util.Set;
-
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
