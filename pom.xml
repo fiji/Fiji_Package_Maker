@@ -15,6 +15,10 @@
 	<name>plugins/Fiji_Package_Maker.jar</name>
 	<description />
 
+	<properties>
+		<main-class>fiji.packaging.Packager</main-class>
+	</properties>
+
 	<dependencies>
 		<!-- Fiji dependencies -->
 		<dependency>
@@ -40,7 +44,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>fiji.packaging.Packager</mainClass>
+							<mainClass>${main-class}</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
