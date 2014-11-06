@@ -16,10 +16,13 @@
 	<description />
 
 	<dependencies>
+		<!-- Fiji dependencies -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>fiji-lib</artifactId>
 		</dependency>
+
+		<!-- ImageJ dependencies -->
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
@@ -27,8 +30,6 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-updater</artifactId>
-			<!-- TODO: remove once pom-fiji is based on pom-imagej -->
-			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 
