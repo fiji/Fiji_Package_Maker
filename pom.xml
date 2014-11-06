@@ -15,9 +15,28 @@
 	<name>plugins/Fiji_Package_Maker.jar</name>
 	<description />
 
+	<scm>
+		<connection>scm:git:git://github.com/fiji/Fiji_Package_Maker</connection>
+		<developerConnection>scm:git:git@github.com:fiji/Fiji_Package_Maker</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/fiji/Fiji_Package_Maker</url>
+	</scm>
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>http://jenkins.imagej.net/job/Fiji_Package_Maker/</url>
+	</ciManagement>
+
 	<properties>
 		<main-class>fiji.packaging.Packager</main-class>
 	</properties>
+
+	<repositories>
+		<!-- NB: for project parent -->
+		<repository>
+			<id>imagej.public</id>
+			<url>http://maven.imagej.net/content/groups/public</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<!-- Fiji dependencies -->
@@ -51,25 +70,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/Fiji_Package_Maker/</url>
-	</ciManagement>
-
-	<scm>
-		<connection>scm:git:git://github.com/fiji/Fiji_Package_Maker</connection>
-		<developerConnection>scm:git:git@github.com:fiji/Fiji_Package_Maker</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://github.com/fiji/Fiji_Package_Maker</url>
-	</scm>
-
-	<repositories>
-		<!-- NB: for project parent -->
-		<repository>
-			<id>imagej.public</id>
-			<url>http://maven.imagej.net/content/groups/public</url>
-		</repository>
-	</repositories>
 
 </project>
