@@ -26,11 +26,13 @@ public class Package_Maker implements PlugIn {
 
 		GenericDialogPlus gd = new GenericDialogPlus("Make Fiji Package");
 		gd.addChoice("Type", types, types[IJ.isWindows() ? 0 : 1]);
+		gd.addCheckbox("Include_Java_Runtime", false);
 		gd.showDialog();
 		if (gd.wasCanceled())
 			return;
 
 		Packager packager = packagers.get(gd.getNextChoiceIndex());
+		final boolean includeJRE = gd.getNextBoolean();
 
 		String platform = Packager.getPlatform();
 		String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
@@ -42,7 +44,7 @@ public class Package_Maker implements PlugIn {
 
 		String path = save.getDirectory() + save.getFileName();
 		try {
-			packager.initialize(false);
+			packager.initialize(includeJRE);
 			packager.open(new FileOutputStream(path));
 			packager.addDefaultFiles();
 			packager.close();
