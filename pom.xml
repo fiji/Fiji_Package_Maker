@@ -74,8 +74,8 @@
 		<url>https://github.com/fiji/Fiji_Package_Maker/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/Fiji_Package_Maker/</url>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/fiji/Fiji_Package_Maker</url>
 	</ciManagement>
 
 	<properties>
