@@ -11,7 +11,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>Fiji_Package_Maker</artifactId>
-	<version>2.1.1-SNAPSHOT</version>
+	<version>2.1.1</version>
 
 	<name>Fiji Package Maker</name>
 	<description>Fiji Package Maker plugin for Fiji.</description>
@@ -66,7 +66,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/fiji/Fiji_Package_Maker</connection>
 		<developerConnection>scm:git:git@github.com:fiji/Fiji_Package_Maker</developerConnection>
-		<tag>HEAD</tag>
+		<tag>Fiji_Package_Maker-2.1.1</tag>
 		<url>https://github.com/fiji/Fiji_Package_Maker</url>
 	</scm>
 	<issueManagement>
